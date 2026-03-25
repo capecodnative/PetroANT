@@ -1,0 +1,59 @@
+﻿Names Default To Here( 1 );
+
+dt = Current Data Table();
+
+// --- settings ---
+suffixToMatch = "_mol";
+denomName = "ti_mol";
+newGroupName = "Normalized to ti_mol";
+newSuffix = "_normTi";
+
+// --- check denominator exists ---
+allColNames = dt << Get Column Names( "String" );
+
+If( Contains( allColNames, denomName ) == 0,
+	Throw( "Column '" || denomName || "' was not found." )
+);
+
+newCols = {};
+
+// --- loop over all columns ending in _mol ---
+For( i = 1, i <= N Items( allColNames ), i++,
+	thisName = allColNames[i];
+
+	If( Ends With( Lowercase( thisName ), Lowercase( suffixToMatch ) ),
+		
+		baseName = Left( thisName, Length( thisName ) - Length( suffixToMatch ) );
+		newName = baseName || newSuffix;
+		
+		// avoid overwrite
+		If( Contains( allColNames, newName ) == 0,
+			
+			newCol = dt << New Column(
+				newName,
+				Numeric,
+				Continuous,
+				Format( "Best", 12 ),
+				Formula(
+					As Column( thisName ) / As Column( denomName )
+				)
+			);
+			
+			// ✅ set default axis to log (correct property)
+			newCol << Set Property(
+				"Axis",
+				{Scale( "Log" )}
+			);
+			
+			Insert Into( newCols, newCol );
+			Insert Into( allColNames, newName );
+		);
+	);
+);
+
+// --- group the newly created columns ---
+If( N Items( newCols ) > 0,
+	dt << Group Columns( newGroupName, newCols );
+,
+	Show( "No new normalized columns were created." );
+);

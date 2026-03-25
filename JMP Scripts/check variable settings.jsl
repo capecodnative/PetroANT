@@ -1,0 +1,6 @@
+Names Default To Here(1);
+
+dt = Current Data Table();
+col = Column(dt, "al_mol");
+
+Show Properties( col );

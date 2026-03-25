@@ -1,0 +1,14 @@
+Names Default To Here(1);
+
+dt = Current Data Table();
+
+cols = dt << Get Column Names("String");
+
+For(i = 1, i <= N Items(cols), i++,
+    If( Ends With(cols[i], "_mol"),
+		Column( dt, cols[i] ) << Set Property(
+			"Axis",
+			{Scale( "Log" )}
+		);
+    );
+);
